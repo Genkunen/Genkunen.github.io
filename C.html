@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>C</title>
+    </head>
+
+    <body>
+        <dl>
+            <dt>
+                <a name="compound_literals">
+                    <h2>Compound literals</h2>
+                </a>
+            </dt>
+            <dd>
+                <code>(Type){ /* initializer list */ };</code>
+                <p>Compound literal creates unnamed object, which storage
+                    duration varies depending on the scope:
+                    <dl>
+                        <dd>static storage (at file scope)</dd>
+                        <dd>automatic storage (at block scope)</dd>
+                    </dl></p>
+                <p>Compound literal is an lvalue, so taking an address of it is
+                    possible.</p>
+                <code><pre>
+    Type* ptr = &(Type){ /* initializer list */ }</pre></code>
+                <p>Example usage:</p>
+                <code><pre>
+    typedef struct Object {
+        void* data;
+        int id;
+        int capacity;
+        Foo bar;
+    } Object;
+
+    Object* CreateObject(Object* p_obj) {
+        static int id = { 0 };
+        *p_obj = (Object){ .id = id, .data = malloc(DATA_SIZE) };
+        
+        if(p_obj->data){
+            p_obj-> capacity = DATA_SIZE;
+        }
+        return p_obj;
+    }</pre></code>
+            </dd>
+            <dt>
+                <a name="handling_dynamic_multidimensional_arrays">
+                    <h2>Handling dynamic multidimensional arrays</h2>
+                </a>
+            </dt>
+            <dd>
+                <p>Multidimensional arrays are often ugly and annoying. In a
+                    perfect world initialization and access is as simple as:
+                </p>
+                <code><pre>
+    int** arr = malloc([n][m]);
+
+    for(int i = 0; i &lt; n; ++i) {
+        for(int j = 0; j &lt; m; ++j) {
+            arr[i][j] = ...;
+        }
+    }</pre></code>
+                <p>but that's not what C let's us do. Or is it? At first glance,
+                    it seems like its only possible to prioritize one over the
+                    other. Both of the naive approaches listed below:</p>
+                <p>comfortable access, horrible life management:</p>
+                <code><pre>
+    // Initializing
+    int** numbers = malloc(sizeof(int*) * n);
+    for(int i = 0; i &lt; n; ++i) {
+        numbers[i] = malloc(sizeof(int) * m);
+    }
+
+    // accessing
+    for(int i = 0; i &lt; n; ++i) {
+        for(int j = 0; j &lt; m; ++j) {
+            numbers[i][j] = ...;
+        }
+    }
+
+    // freeing
+    for(int i = 0; i &lt; n; ++i){
+        free(numbers[i]);
+    }
+    free(numbers);</pre></code>
+                <p>elegant life management, dreadful accessing:</p>
+                <code><pre>
+    // Initializing
+    int* numbers = malloc(sizeof(int) * n * m);
+
+    // accessing
+    for(int i = 0; i &lt; n; ++i) {
+        for(int j = 0; j &lt; m; ++j) {
+            *(numbers + i * sizeof(int[n]) + j) = ...; // yuck
+        }
+    }
+
+    // freeing
+    free(numbers);</pre></code>
+                <p>To merge those approaches, we must consider VLA syntax:</p>
+                <code><pre>
+    // Initializing
+    int (*numbers)[n][m] = malloc(sizeof(*numbers));
+
+    // accessing 
+    for(int i = 0; i &lt; n; ++i) {
+        for(int j = 0; j &lt; m; ++j) {
+            (*numbers)[i][j] = ...;
+        }
+    }
+
+    // freeing
+    free(numbers);</pre></code>
+                <p>or with cleaner access:</p>
+                <code><pre>
+    // Initializing
+    int (*numbers)[n] = malloc(sizeof(*numbers) * m);
+    // even more VLA:   malloc(sizeof(typeof(*numbers)[m]));
+
+    // accessing 
+    for(int i = 0; i &lt; n; ++i) {
+        for(int j = 0; j &lt; m; ++j) {
+            numbers[i][j] = ...;
+        }
+    }
+
+    // freeing
+    free(numbers);</pre></code>
+            </dd>
+            <dt>
+                <a name="initialization">
+                    <h2>Initialization</h2>
+                </a>
+            </dt>
+            <dd>
+                <p>The best compatible way of initializing data in post ANSI C
+                    is by using brackets:</p>
+                <code><pre>
+    struct data {
+        const char* str;
+        int value;
+    };
+
+    double value = { 12.34 };
+    double numbers[42] = { 0 }; // zeroed out
+    struct data d1 = { 0 }; // zeroed out</pre></code>
+                <p>Initializers for structures can be either positional or
+                    designated:</p>
+                <code><pre>
+    struct data d2 = { "abcd", 1234 }; // positional
+    struct data d3 = { .str = "abcd", .value = 1234 }; // designated</pre></code>
+                <p>Designated initializers are helpful when you only want some
+                    data initialized and rest set to zero:</p>
+                <code><pre>
+    struct data {
+        const char* str;
+        int value;
+        int flags;
+        struct {
+            int x;
+            int y;
+        } size;
+    };
+
+    struct data d1 = { .value = 10; };
+    // rest is zeroed out</pre></code>
+                <p>Order of designated initializers is arbitrary and the last
+                    used will serve as a relative position for the next
+                    positional initializer:</p>
+                <code><pre>
+    struct data d2 = { "abcd", .flags = 0x2137, 2, 3, .value = 2 };</pre></code>
+                <p>You can even use designated initializers for nested
+                    structures:</p>
+                <code><pre>
+    struct data d3 = { "abcd", .flags = 0x2137, .value = 2, .size.x = 2, 3 };</pre></code>
+                <p>Both of the examples populate the struct with:</p>
+                <code><pre>
+    const char* str; // "abcd"
+    int value;       // 2
+    int flags;       // 0x2137
+    struct {         
+        int x;       // 2
+        int y;       // 3
+    } size;</pre></code>
+                <p>Arrays also support designated initializers:</p>
+                <code><pre>
+    int numbers[10] = { 1, [3] = 2, 3, [5] = 5, [9] = 34 };</pre></code>
+                <p>Intriguing example using designated initialization:</p>
+                <code><pre>
+    #define COMP_SIZE 100
+    struct component {
+        char* name;
+        int value;
+    };
+
+    struct component comps[COMP_SIZE] = { [COMP_SIZE - 1] = "last component" };
+                </pre></code>
+            </dd>
+            <dt>
+                <a name="variable_length_arrays">
+                    <h2>VLAs - <u>V</u>ariable-<u>L</u>ength <u>A</u>rrays</h2>
+                </a>
+            </dt>
+            <dd>
+                <p>A variable-length array is an array data structure whose
+                    length is determined at runtime. VLAs work best with smaller
+                    arrays, as bigger sizes can result in stack overflow. Their
+                    standard usage is highly frowned on:</p>
+                <blockquote cite="https://lkml.org/lkml/2018/3/7/621">USING
+                    USING VLA'S IS ACTIVELY STUPID! It generates much
+                    more code, and much _slower_ code (and more fragile code),
+                    than just using a fixed key size would have
+                    done.</blockquote> ~Linus Torvalds, 7 Mar 2018
+                <p>Below is shown a simple comparison (x86-64 gcc 15.1).</p>
+                <code><pre>
+|--------------------------------|-----------------------------------
+|      int stack[3] = { 0 };     |   int vla[n] = { 0 }; // n = 3
+|--------------------------------|-----------------------------------
+|mov     QWORD PTR [rbp-52], 0   |   mov     eax, DWORD PTR [rbp-20]
+|mov     DWORD PTR [rbp-44], 0   |   movsx   rdx, eax
+|                                |   sub     rdx, 1
+|                                |   mov     QWORD PTR [rbp-32], rdx
+|                                |   movsx   rdx, eax
+|                                |   lea     rcx, [0+rdx*4]
+|                                |   cdqe
+|                                |   lea     rdx, [0+rax*4]
+|                                |   mov     eax, 16
+|                                |   sub     rax, 1
+|                                |   add     rax, rdx
+|                                |   mov     esi, 16
+|                                |   mov     edx, 0
+|                                |   div     rsi
+|                                |   imul    rax, rax, 16
+|                                |   sub     rsp, rax
+|                                |   mov     rax, rsp
+|                                |   add     rax, 3
+|                                |   shr     rax, 2
+|                                |   sal     rax, 2
+|                                |   mov     QWORD PTR [rbp-40], rax
+|                                |   mov     rax, QWORD PTR [rbp-40]
+|                                |   mov     rdx, rcx
+|                                |   mov     esi, 0
+|                                |   mov     rdi, rax
+|                                |   call    memset
+|--------------------------------|-----------------------------------</pre></code>
+                <p>But there is a silver lining! VLA is meant to be used as
+                    an extension to type declarations. Take a look at the
+                    function below:</p>
+                <code><pre>
+    int stack(int* numbers, size_t n) {
+        return numbers[n-1];
+    }           </pre></code>
+                <p>It is possible to rewrite it in a bit safer way:</p>
+                <h6>(yes, int n must appear earlier in function parameters)</h6>
+                <code><pre>
+    int stack(size_t n, int numbers[n]) {
+        return numbers[n-1];
+    }           </pre></code>
+                <p>In some scenarios, compilers can detect buffer overflows and
+                    emit warnings. VLA syntax can also be used to guarantee that
+                    the array consists of valid objects:</p>
+                <code><pre>
+    int stack(size_t n, int numbers[static n]) {
+        return numbers[n-1];
+    }           </pre></code>
+                <p>When passing an array as a single pointer or object and you
+                    want to guarantee that its valid, you can also do that:</p>
+                <code><pre>
+    int strlen(const char str[static 1]) {
+        size_t len = { 0 };
+        while(*str++ != '\0') ++len;
+        return len;
+    }           </pre></code>
+                <p>Whats more interesting is that VLA's syntax allows generating
+                    critical executable code from typedef declarations. In
+                    example below, the dynamically-sized array type won't change
+                    its size, when the n variable changes after typedef
+                    declaration. Size of the array must be stored as a hidden
+                    internal variable, meaning that n must be defined
+                    (obviously) and the scope of this declaration cannot be
+                    omitted.</p>
+                <code><pre>
+    int n = 10;
+    goto skip; // Error: invalid goto
+
+    typedef int arr[n];
+
+    skip:</pre></code>
+                <p>An <b>amazing</b> way of using VLAs syntax, is to dynamically
+                    allocate multidimensional arrays. More about that
+                    <a href="C.html#handling_dynamic_multidimensional_arrays">
+                        <b>here</b></a>.</p>
+            </dd>
+        </dl>
+    </body>
+    <hr>
+    <footer>
+        <h3>Sources of information and/or inspiration</h3>
+        <a href="https://godbolt.org/">
+            <mark>Compiler Explorer</mark>
+        </a>
+        <br><br>
+        <details>
+            <summary>Stack Overflow</summary>
+            <a
+                href="https://stackoverflow.com/questions/22530363/whats-the-point-of-vla-anyway">
+                What's the point of VLA anyway?
+            </a>
+        </details>
+        <br>
+        <a href="https://www.youtube.com/watch?v=lLv1s7rKeCM">
+            C is great! Long live C! - Dawid Zalewski
+        </a>
+        <br>
+    </footer>
+</html>
