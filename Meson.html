@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Meson</title>
+    </head>
+    <body>
+        <dl>
+            <dt><a name="project"><h2>Project</h2></a></dt>
+        </dl>
+        <dd>
+            <p>
+                <code>project()</code> initializes Meson must be declared at the
+                top of a <code>meson.build</code> file.
+            </p>
+            <code><pre>
+void project(
+    name             // must be specified
+    language/s       // <a href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">list of supported languages</a>
+    default_options  
+    license          // <a href="https://spdx.org/licenses/">licenses list</a>
+    license_files    // path to a file with more verbose license
+    meson_version    // specifies required by this project Meson's version
+    subproject_dir   // for compatibility, don't use in projects (I think)
+    version          // string or path to a file with one line. Project version
+)</pre></code>
+        </dd>
+        <dt><a name="meson_object"><h2>Meson object</h2></a></dt>
+        <dd>
+            <p><code>meson</code> object allows use of various of its
+                methods (meson.*).</p>
+            <p>
+                <dl>
+                    <dt><code>backend()</code>:</dt>
+                    <dd> returns the current backend ( <code>ninja, vs2010,
+                            vs2012, vs2013, vs2015, vs2017, vs2019, vs2022,
+                            xcode</code>).</dd>
+                    <dt><code>build_options()</code>:</dt>
+                    <dd>returns the current configuration line used to set the
+                        project up.</dd>
+                    <dt><code>build_root()</code>:</dt>
+                    <dd> returns an absolute path to the build root
+                        directory.</dd>
+                    <dt><code>current_build_dir()</code>:</dt>
+                    <dd>returns an absolute path to the current build
+                        directory.</dd>
+                    <dt><code>get_compiler(language, native)</code>:</dt>
+                    <dd><code>language</code>: <a
+                            href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">language
+                            of the compiler to return</a>.<br>
+                        <code>native</code>: if true, returns the compiler for
+                        the build machine, else returns the host compiler.</dd>
+                    <dt><code>global_build_root()</code>:</dt>
+                    <dd>same as <code>build_root().</code></dd>
+                    <dt><code>is_subproject()</code>:</dt>
+                    <dd>returns true if the current project is a
+                        subproject.</dd>
+                    <dt><code>meson.project_build_root()</code>:</dt>
+                    <dd>same as <code>current_build_dir()</code>.</dd>
+                    <dt><code>project_license():</code></dt>
+                    <dd>returns an array of specified licenses.</dd>
+                    <dt><code>project_license_files():</code></dt>
+                    <dd>return an array of specified license files.</dd>
+                    <dt><code>project_name():</code></dt>
+                    <dd>returns the specified project name.</dd>
+                    <dt><code>project_version():</code></dt>
+                    <dd>return the specified project version.</dd>
+                    <dt><code>version():</code></dt>
+                    <dd>returns the version of Meson.</dd>
+                </dl>
+            </p>
+        </dd>
+    </body>
+</html>
