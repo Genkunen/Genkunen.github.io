@@ -7,69 +7,146 @@
     </head>
     <body>
         <dl>
-            <dt><a name="project"><h2>Project</h2></a></dt>
-        </dl>
-        <dd>
-            <p>
-                <code>project()</code> initializes Meson must be declared at the
-                top of a <code>meson.build</code> file.
-            </p>
-            <code><pre>
-void project(
-    name             // must be specified
-    language/s       // <a href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">list of supported languages</a>
-    default_options  
-    license          // <a href="https://spdx.org/licenses/">licenses list</a>
-    license_files    // path to a file with more verbose license
-    meson_version    // specifies required by this project Meson's version
-    subproject_dir   // for compatibility, don't use in projects (I think)
-    version          // string or path to a file with one line. Project version
-)</pre></code>
-        </dd>
-        <dt><a name="meson_object"><h2>Meson object</h2></a></dt>
-        <dd>
-            <p><code>meson</code> object allows use of various of its
-                methods (meson.*).</p>
-            <p>
+            <!--=============================================================-->
+            <dt><a name="configuration"><h2>Configuration</h2></a></dt>
+            <dd>
+                <p>
+                    Each project has built-in <a
+                        href="https://mesonbuild.com/Commands.html">options</a>
+                    for configuration. To configure them, use command line as
+                    follow: <code>meson configure [option]=new_value</code>.
+                </p>
                 <dl>
-                    <dt><code>backend()</code>:</dt>
-                    <dd> returns the current backend ( <code>ninja, vs2010,
-                            vs2012, vs2013, vs2015, vs2017, vs2019, vs2022,
-                            xcode</code>).</dd>
-                    <dt><code>build_options()</code>:</dt>
-                    <dd>returns the current configuration line used to set the
-                        project up.</dd>
-                    <dt><code>build_root()</code>:</dt>
-                    <dd> returns an absolute path to the build root
-                        directory.</dd>
-                    <dt><code>current_build_dir()</code>:</dt>
-                    <dd>returns an absolute path to the current build
-                        directory.</dd>
-                    <dt><code>get_compiler(language, native)</code>:</dt>
-                    <dd><code>language</code>: <a
-                            href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">language
-                            of the compiler to return</a>.<br>
-                        <code>native</code>: if true, returns the compiler for
-                        the build machine, else returns the host compiler.</dd>
-                    <dt><code>global_build_root()</code>:</dt>
-                    <dd>same as <code>build_root().</code></dd>
-                    <dt><code>is_subproject()</code>:</dt>
-                    <dd>returns true if the current project is a
-                        subproject.</dd>
-                    <dt><code>meson.project_build_root()</code>:</dt>
-                    <dd>same as <code>current_build_dir()</code>.</dd>
-                    <dt><code>project_license():</code></dt>
-                    <dd>returns an array of specified licenses.</dd>
-                    <dt><code>project_license_files():</code></dt>
-                    <dd>return an array of specified license files.</dd>
-                    <dt><code>project_name():</code></dt>
-                    <dd>returns the specified project name.</dd>
-                    <dt><code>project_version():</code></dt>
-                    <dd>return the specified project version.</dd>
-                    <dt><code>version():</code></dt>
-                    <dd>returns the version of Meson.</dd>
+                    <dt>Most useful options:</dt>
+                    <dd><code>--backend</code> ninja, vs20XX, xcode, none,</dd>
+                    <dd><code>--buildtype</code> plain, debug, debugoptimized,
+                        release, minsize, custom,</dd>
+                    <dd><code>--debug</code> enable debug information,</dd>
+                    <dd><code>--optimization</code> plain, 0, g, 1, 2, 3,
+                        s,</dd>
+                    <dd><code>--warnlevel</code> 0, 1, 2, 3, everything,</dd>
+                    <dd><code>--werror</code> treat warnings as errors,</dd>
+                    <dd><code>-D[option]</code> set any option.</dd>
+                </dl>
+                <p>It is also possible to create custom options by
+                    specifying them in the <code>meson.options</code> or before
+                    Meson 1.1 <code>meson_options.txt</code>. To create an
+                    option use <code>option(...)</code> function, examples
+                    below:</p>
+                <code cite="https://mesonbuild.com/Build-options.html"><pre>
+option('someoption', type: 'string', value: 'optval', description: 'An option')
+option('other_one', type: 'boolean', value: false)
+option('combo_opt', type: 'combo', choices: ['one', 'two', 'three'], value: 'three')
+option('integer_opt', type: 'integer', min: 0, max : 5, value : 3) # Since 0.45.0
+option('free_array_opt', type: 'array', value: ['one', 'two'])  # Since 0.44.0
+option('array_opt', type: 'array', choices: ['one', 'two', 'three'], value: ['one', 'two'])
+option('some_feature', type: 'feature', value: 'enabled')  # Since 0.47.0
+option('long_desc', type: 'string', value: 'optval',
+       description: 'An option with a very long description' +
+                     'that does something in a specific context') # Since 0.55.0</pre></code>
+                <p><code>Feature</code> type is meant to use for the required
+                    keyword.</p>
+                <p>Every option can be marked as <code>deprecated</code> and
+                    emit a
+                    warning when used:</p>
+                <code cite="https://mesonbuild.com/Build-options.html"><pre>
+option('o1', type: 'boolean', deprecated: true)
+option('o2', type: 'array', choices: ['a', 'b'], deprecated: ['a'])
+# 'a' is replaced by 'c'.
+option('o3', type: 'array', choices: ['a', 'b', 'c'], deprecated: {'a': 'c'})
+# remap from boolean to feature
+option('o4', type: 'feature', deprecated: {'true': 'enabled', 'false': 'disabled'})
+# remap from feature to boolean
+option('o5', type: 'boolean', deprecated: {'enabled': 'true', 'disabled': 'false', 'auto': 'false'})
+# remap from boolean to feature with redirect to another option
+option('o6', type: 'boolean', value: 'true', deprecated: 'o7')
+option('o7', type: 'feature', value: 'enabled', deprecated: {'true': 'enabled', 'false': 'disabled'})</pre></code>
+                <p>To use these options in <code>meson.build</code> use
+                    <code>get_options('name')</code>. Changing them can be done
+                    using <code>-D[option]=new_value</code>, or
+                    <code>-Dsubproject:[option]=new_value</code>.</p>
+                <p>Another way of configurating the project is by using
+                    <code>configuration_data()</code> function. It creates an
+                    empty configuration object, that later is used in a call to
+                    <code>configure_file(...)</code></p>
+            </dd>
+            <!--=============================================================-->
+            <dt><a name="project"><h2>Project</h2></a></dt>
+            <dd>
+                <p>
+                    <code>project()</code> initializes Meson must be declared at
+                    the top of a <code>meson.build</code> file.
+                </p>
+                <code><pre>
+void project(
+    name,             # must be specified
+    language/s,       # <a href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">list of supported languages</a>
+    default_options,  
+    license,          # <a href="https://spdx.org/licenses/">licenses list</a>
+    license_files,    # path to a file with more verbose license
+    meson_version,    # specifies required by this project Meson's version
+    subproject_dir,   # for compatibility, don't use in projects (I think)
+    version,          # string or path to a file with one line. Project version
+)</pre></code>
+            </dd>
+            <!--=============================================================-->
+            <dt><a name="meson_object"><h2>Meson object</h2></a></dt>
+            <dd>
+                <p><code>meson</code> object allows use of various of its
+                    methods (meson.*).</p>
+                <p>
+                    <dl>
+                        <dt><code>backend()</code>:</dt>
+                        <dd> returns the current backend ( <code>ninja, vs2010,
+                                vs2012, vs2013, vs2015, vs2017, vs2019, vs2022,
+                                xcode</code>).</dd>
+                        <dt><code>build_options()</code>:</dt>
+                        <dd>returns the current configuration line used to set
+                            the project up.</dd>
+                        <dt><code>build_root()</code>:</dt>
+                        <dd> returns an absolute path to the build root
+                            directory.</dd>
+                        <dt><code>current_build_dir()</code>:</dt>
+                        <dd>returns an absolute path to the current build
+                            directory.</dd>
+                        <dt><code>get_compiler(language, native)</code>:</dt>
+                        <dd><code>language</code>: <a
+                                href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">language
+                                of the compiler to return</a>.<br>
+                            <code>native</code>: if true, returns the compiler
+                            for the build machine, else returns the host
+                            compiler.</dd>
+                        <dt><code>global_build_root()</code>:</dt>
+                        <dd>same as <code>build_root().</code></dd>
+                        <dt><code>is_subproject()</code>:</dt>
+                        <dd>returns true if the current project is a
+                            subproject.</dd>
+                        <dt><code>meson.project_build_root()</code>:</dt>
+                        <dd>same as <code>current_build_dir()</code>.</dd>
+                        <dt><code>project_license():</code></dt>
+                        <dd>returns an array of specified licenses.</dd>
+                        <dt><code>project_license_files():</code></dt>
+                        <dd>return an array of specified license files.</dd>
+                        <dt><code>project_name():</code></dt>
+                        <dd>returns the specified project name.</dd>
+                        <dt><code>project_version():</code></dt>
+                        <dd>return the specified project version.</dd>
+                        <dt><code>version():</code></dt>
+                        <dd>returns the version of Meson.</dd>
+                    </dl>
                 </dl>
             </p>
+            <!--=============================================================-->
         </dd>
     </body>
+    <hr>
+    <footer>
+        <h3>Sources of information and/or inspiration</h3>
+        <a
+            href="https://gitlab.gnome.org/GNOME/gimp/-/blob/master/meson.build?ref_type=heads">
+            GIMP's <code>meson.build</code> file
+        </a>
+        <br>
+        <a href="https://mesonbuild.com/">Meson official page</a>
+    </footer>
 </html>
