@@ -65,10 +65,85 @@ option('o7', type: 'feature', value: 'enabled', deprecated: {'true': 'enabled', 
                     <code>get_options('name')</code>. Changing them can be done
                     using <code>-D[option]=new_value</code>, or
                     <code>-Dsubproject:[option]=new_value</code>.</p>
-                <p>Another way of configurating the project is by using
+                <p>Another way of configurating a project is by using
                     <code>configuration_data()</code> function. It creates an
                     empty configuration object, that later is used in a call to
-                    <code>configure_file(...)</code></p>
+                    <code>configure_file(...)</code>.This object allows to call
+                    numerous methods:</p>
+                <p>
+                    <dl>
+                        <dt><code>get(name, val)</code>:</dt>
+                        <dd>Returns value of the variable that matches the given
+                            <code>name</code>. If no name matches, the value
+                            equals <code>val</code>.</dd>
+                        <dt><code>set(name, val)</code>:</dt>
+                        <dd>Sets the variable with the given <code>name</code>
+                            to the specified <code>val</code>.</dd>
+                        <dt><code>get_quoted(name, val)</code>:</dt>
+                        <dd>Returns value of the variable that matches the given
+                            <code>name</code>, but without surrounding double
+                            qotes (<code>"</code>). If no name matches, the
+                            value equals <code>val</code>.</dd>
+                        <dt><code>set_quoted(name, val)</code>:</dt>
+                        <dd>Sets the variable with the given <code>name</code>
+                            to the specified <code>val</code>, but encapsulates
+                            it in the double quotes (<code>"</code>).</dd>
+                        <dt><code>has(name)</code>:</dt>
+                        <dd>Returns true if the variable that matches the given
+                            <code>name</code> exists.</dd>
+                        <dt><code>merge_from(other)</code>:</dt>
+                        <dd>Merges <code>other</code> configuration object into
+                            the one that called the method.</dd>
+                        <dt><code>keys()</code>:</dt>
+                        <dd>Returns an array of variables set in configuration
+                            object.</dd>
+                    </dl>
+                </p>
+                <p>After creating variables call <code>configure_file()</code>
+                    to create an output file, which will have set earlier
+                    values. Below detailed look at this function:</p>
+                <dl>
+                    <dt><code>file configure_file (</code></dt>
+                    <dd>
+                        <dl>
+                            <dt><code>configuration</code>:</dt>
+                            <dd>Configuration object from where the set values
+                                are written to the output file.</dd>
+                            <dt><code>copy</code>:</dt>
+                            <dd>If true, Meson only copies specified input file
+                                to output.</dd>
+                            <dt><code>depfile</code>:</dt>
+                            <dd>Dependency file name, which writes all
+                                additional files this target depends on.</dd>
+                            <dt><code>input</code>:</dt>
+                            <dd>Input file name, for the output to generate
+                                values. <code>@</code> symbol is used to specify
+                                variables, for example: <code>@var@</code>. It
+                                is optional and in the case of absence, the
+                                output file will just have all set variables
+                                written out.</dd>
+                            <dt><code>install</code>:</dt>
+                            <dd>If true, the output file is marked for
+                                installation. If omitted, the value depends on
+                                the existance of install_dir.</dd>
+                            <dt><code>install_dir</code>:</dt>
+                            <dd>A path, where to install the output file to. If
+                                absent the file won't be installed.</dd>
+                            <dt><code>macro_name</code>:</dt>
+                            <dd>When specified, the name will be used as a macro
+                                guard instead of <code>#pragma</code> once.</dd>
+                            <dt><code>output</code>:</dt>
+                            <dd>Output file name, where the generated values
+                                will be written.</dd>
+                            <dt><code>output_format</code>:</dt>
+                            <dd>Format in which the output file is written as,
+                                when no input file is provided. Defaults to
+                                C macros. Since Meson 1.3.0 its possible to use
+                                <code>json</code> as a format.</dd>
+                        </dl>
+                    </dd>
+                    <dt><code>)</code></dt>
+                </dl>
             </dd>
             <!--=============================================================-->
             <dt><a name="project"><h2>Project</h2></a></dt>
@@ -78,7 +153,7 @@ option('o7', type: 'feature', value: 'enabled', deprecated: {'true': 'enabled', 
                     the top of a <code>meson.build</code> file.
                 </p>
                 <code><pre>
-void project(
+void project (
     name,             # must be specified
     language/s,       # <a href="https://mesonbuild.com/Reference-tables.html#language-arguments-parameter-names">list of supported languages</a>
     default_options,  
