@@ -146,6 +146,50 @@ option('o7', type: 'feature', value: 'enabled', deprecated: {'true': 'enabled', 
                 </dl>
             </dd>
             <!--=============================================================-->
+            <dt><a name="install"><h2>Install</h2></a></dt>
+            <dd>
+                <p>
+                    Installing in Meson allows to copy and/or distribute the
+                    needed files to set directories. To specify install path add
+                    <code>install_dir</code> parameter to functions that create
+                    files. Some functions that allow <code>install_dir</code>:
+                </p>
+                <dl>
+                    <dd><code>shared_library(...)</code>,</dd>
+                    <dd><code>static_library(...)</code>,</dd>
+                    <dd><code>executable(...)</code>,</dd>
+                    <dd><code>custom_target(...)</code>,</dd>
+                    <dd><code>configure_file(...)</code>,</dd>
+                    <dd><code>install_data(...)</code>,</dd>
+                    <dd>and many more.</dd>
+                </dl>
+                <p>Meson provides many functions that broaden the installation
+                    feature:</p>
+                <dl>
+                    <dt><code>install_data(file..., ...)</code>:</dt>
+                    <dd>Installs <code>file</code>s. Optional parameter
+                        <code>rename</code> can be used to change name of all
+                        files. Each file must have a corresponding new name
+                        given.</dd>
+                    <dt><code>install_emptydir(dirpath, ...)</code>:</dt>
+                    <dd>Creates a new empty directory (if none already exists)
+                        at the <code>dirpath</code>.</dd>
+                    <dt><code>install_headers(file..., ...)</code>:</dt>
+                    <dd>Install header <code>file</code>s. If install_path is
+                        omitted, the default directory becomes
+                        <code>/{prefix}/include</code>. Parameter
+                        <code>subdir</code> is useful to add an additional dir
+                        for headers only.</dd>
+                    <dt><code>install_subdir(subdir_name, ...)</code>:</dt>
+                    <dd>Installs directory at <code>subdir_name</code>. Useful
+                        parameters for conditioning files are
+                        <code>exclude_directories</code> and
+                        <code>exclude_files</code>, both self explanatory. When
+                        <code>strip_directory</code> is true, only contents of
+                        said directory will be installed.</dd>
+                </dl>
+            </dd>
+            <!--=============================================================-->
             <dt><a name="project"><h2>Project</h2></a></dt>
             <dd>
                 <p>
