@@ -7,6 +7,8 @@
     </head>
 
     <body>
+        <header><a href="index.html"><h1>Notes</h1></a></header>
+
         <dl>
             <!--=============================================================-->
             <dt>
@@ -207,11 +209,40 @@
                 </a>
             </dt>
             <dd>
-                Object is a region in memory, which can be represented as
-                certain values, depending on the given type. As a short example,
-                value <code>0x61</code> or <code>97</code> can also mean
-                <code>'a'</code> if we interpret it as a character (type
-                <code>char</code>).
+                <p>
+                    Object is a region in memory, which can be represented as
+                    certain values, depending on the given type. As a short
+                    example,
+                    value <code>0x61</code> or <code>97</code> can also mean
+                    <code>'a'</code> if we interpret it as a character (type
+                    <code>char</code>).
+                </p>
+                <p>
+                    Object representation is a contiguous sequence of bytes,
+                    which can be accessed, for example, by copying the object
+                    with <code>memcpy</code> into <code>unsigned char[n]</code>,
+                    where <code>n</code> is it's size. Two objects with equal
+                    representation are equal in value, but two objects with
+                    equal value might not be equal in representation.
+                </p>
+                <code><pre>
+    // Two objects, same value, different representation
+    float a = -0.f;
+    int b = 0;
+    a == b; // true
+
+    unsigned char arr[sizeof(a)]; memcpy(arr, &a, sizeof(a)); // {0, 0, 0, 128}
+    unsigned char brr[sizeof(b)]; memcpy(brr, &b, sizeof(b)); // {0, 0, 0, 0}
+    arr == brr; // false</pre></code>
+                <p>
+                    Trap representation is a pattern of bits in an object that
+                    doesn't correspond to it's value. To prevent traps, always
+                    copy from an initialized type, where no unknown bit patterns
+                    can appear and be cautious to not set padding bytes of
+                    structs to any value, when copying hand-crafter bit
+                    patterns. On modern architecture trap representation is very
+                    unlikely to happen.
+                </p>
             </dd>
             <!--=============================================================-->
             <dt>
@@ -220,12 +251,14 @@
                 </a>
             </dt>
             <dd>
-                <p>A variable-length array is an array data structure whose
+                <p>
+                    A variable-length array is an array data structure whose
                     length is determined at runtime. VLAs work best with smaller
                     arrays, as bigger sizes can result in stack overflow. Their
-                    standard usage is highly frowned on:</p>
-                <blockquote cite="https://lkml.org/lkml/2018/3/7/621">USING
-                    USING VLA'S IS ACTIVELY STUPID! It generates much
+                    standard usage is highly frowned on:
+                </p>
+                <blockquote cite="https://lkml.org/lkml/2018/3/7/621"> USING
+                    VLA'S IS ACTIVELY STUPID! It generates much
                     more code, and much _slower_ code (and more fragile code),
                     than just using a fixed key size would have
                     done.</blockquote> ~Linus Torvalds, 7 Mar 2018
@@ -261,9 +294,11 @@
 |                                |   mov     rdi, rax
 |                                |   call    memset
 |--------------------------------|-----------------------------------</pre></code>
-                <p>But there is a silver lining! VLA is meant to be used as
+                <p>
+                    But there is a silver lining! VLA is meant to be used as
                     an extension to type declarations. Take a look at the
-                    function below:</p>
+                    function below:
+                </p>
                 <code><pre>
     int stack(int* numbers, size_t n) {
         return numbers[n-1];
@@ -274,29 +309,36 @@
     int stack(size_t n, int numbers[n]) {
         return numbers[n-1];
     }           </pre></code>
-                <p>In some scenarios, compilers can detect buffer overflows and
+                <p>
+                    In some scenarios, compilers can detect buffer overflows and
                     emit warnings. VLA syntax can also be used to guarantee that
-                    the array consists of valid objects:</p>
+                    the array consists of valid objects:
+                </p>
                 <code><pre>
     int stack(size_t n, int numbers[static n]) {
         return numbers[n-1];
     }           </pre></code>
-                <p>When passing an array as a single pointer or object and you
-                    want to guarantee that its valid, you can also do that:</p>
+                <p>
+                    When passing an array as a single pointer or object and you
+                    want to guarantee that its valid, you can also do that:
+                </p>
                 <code><pre>
     int strlen(const char str[static 1]) {
         size_t len = { 0 };
         while(*str++ != '\0') ++len;
         return len;
     }           </pre></code>
-                <p>Whats more interesting is that VLA's syntax allows generating
+                <p>
+                    Whats more interesting is that VLA's syntax allows
+                    generating
                     critical executable code from typedef declarations. In
                     example below, the dynamically-sized array type won't change
                     its size, when the n variable changes after typedef
                     declaration. Size of the array must be stored as a hidden
                     internal variable, meaning that n must be defined
                     (obviously) and the scope of this declaration cannot be
-                    omitted.</p>
+                    omitted.
+                </p>
                 <code><pre>
     int n = 10;
     goto skip; // Error: invalid goto
@@ -304,10 +346,14 @@
     typedef int arr[n];
 
     skip:</pre></code>
-                <p>An <b>amazing</b> way of using VLAs syntax, is to dynamically
-                    allocate multidimensional arrays. More about that
+                <p>
+                    An <b>amazing</b> way of using VLAs syntax, is to
+                    dynamically allocate multidimensional arrays. More about
+                    that
                     <a href="C.html#handling_dynamic_multidimensional_arrays">
-                        <b>here</b></a>.</p>
+                        <b>here</b>
+                    </a>.
+                </p>
             </dd>
             <!--=============================================================-->
         </dl>
@@ -317,6 +363,9 @@
         <h3>Sources of information and/or inspiration</h3>
         <a href="https://godbolt.org/">
             <mark>Compiler Explorer</mark>
+        </a><br>
+        <a href="https://en.cppreference.com/">
+            <mark>Cppreference</mark>
         </a>
         <br><br>
         <details>
