@@ -49,6 +49,55 @@
             </dd>
             <!--=============================================================-->
             <dt>
+                <a name="flexible_array_members">
+                    <h2>Flexible Array members</h2>
+                </a>
+            </dt>
+            <dd>
+                <p>
+                    Flexible array members help to simplify allocating dynamic
+                    memory in structures of data. Each structure can only have
+                    one flexible array member and it must be declared at the
+                    end. Below is a showcase of use:
+                </p>
+                <code><pre>
+    struct old_string {
+        int len;
+        char* data;
+    };
+    struct fam_string {
+        int len;
+        char data[]; // flexible array member
+    };
+    
+    // ...
+
+    const char* str = "I am string";
+    const int len = strlen(str) + 1;
+
+    // ===== standard approach ====
+    struct old_string* old = malloc(sizeof(*old));
+    if(!old) return 1;
+    *old = (struct old_string){ len, malloc(len) };
+    if(!old->data) {
+        free(old);
+        return 1;
+    }
+    memcpy(old->data, str, len);
+    // ...
+    free(old->data);
+    free(old);
+
+    // ==== fam approach ====
+    struct fam_string* fam = malloc(sizeof(*fam) + len);
+    if(!fam) return 1;
+    fam->len = len;
+    memcpy(fam->data, str, len);
+    // ...
+    free(fam);</pre></code>
+            </dd>
+            <!--=============================================================-->
+            <dt>
                 <a name="handling_dynamic_multidimensional_arrays">
                     <h2>Handling dynamic multidimensional arrays</h2>
                 </a>
