@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>C++</title>
+    </head>
+    <body>
+        <header><a href="index.html"><h1>Notes</h1></a></header>
+
+        <dl>
+            <!--=============================================================-->
+            <dt><a name="lambda_expression"><h2>Lambda expression</h2></a></dt>
+            <dd>
+                <p>
+                    Introduced in C++11 lambda expression is a callable closure
+                    object. Many standard algorithms use lambdas for custom
+                    operations e.g <code>std::for_each</code>.
+                </p>
+                <p>Lambda expression syntax is as follows:</p>
+                <dl>
+                    <dd>
+                        <code>[captures] front-attr (params) specs except
+                            back-attr trailing requires contract-specs { body }
+                        </code>
+                    </dd>
+                </dl>
+                <p>Explanation:</p>
+                <dl>
+                    <dt><code>captures</code>:</dt>
+                    <dd>the entities to be captured,</dd>
+                    <dt><code>params</code>:</dt>
+                    <dd>parameter list of operator(),</dd>
+                    <dt><code>specs</code> (optional):</dt>
+                    <dd>can only be specified as <code>mutable</code> -
+                        allowed to modify the entity captured by copy and to
+                        call object's non-const member functions,</dd>
+                    <dt><code>except</code> (optional):</dt>
+                    <dd>noexcept specifier for operator(),</dd>
+                    <dt><code>back-attr</code> (optional):</dt>
+                    <dd>Attribute specifier that applies to the type of
+                        operator(),</dd>
+                    <dt><code>trailing</code> (optional):</dt>
+                    <dd>trailing return type,</dd>
+                    <dt><code>body</code>:</dt>
+                    <dd>the function body.</dd>
+                    <p>
+                        Lambda expression is a prvalue of a closure type,
+                        which means the smallest block scope, class scope,
+                        or namespace scope that contains the lambda
+                        expression.
+                    </p>
+                </dl>
+            </dd>
+            <!--=============================================================-->
+        </dl>
+    </body>
+    <hr>
+    <footer>
+        <h3>Sources of information and/or inspiration</h3>
+        <a href="https://godbolt.org/">
+            <mark>Compiler Explorer</mark>
+        </a><br>
+        <a href="https://en.cppreference.com/">
+            <mark>Cppreference</mark>
+        </a><br>
+        <a href="https://en.cppreference.com/">
+            <mark>Jason Turner</mark>
+        </a>
+        <br><br>
+    </footer>
+</html>
